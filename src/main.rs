@@ -15,7 +15,10 @@ fn main() {
     let mut values = Vec::new();
     let mut state = "out";
 
-    for byte in io::stdin().bytes() {
+    let stdin = io::stdin();
+    let handle = stdin.lock();
+
+    for byte in handle.bytes() {
         let c = byte.unwrap() as char;
 
         if c == '\n' {
