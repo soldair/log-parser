@@ -73,6 +73,7 @@ fn format(values: &Vec<String>) {
 
     let date = parse_date(values[0].clone());
     let unixtime = logtime_to_unixtime(&date);
+    let minute = unixtime - (unixtime % 60);
 
     // invalid time. wont count.
     if unixtime == 0 {
@@ -101,8 +102,9 @@ fn format(values: &Vec<String>) {
 
     println!("[{}]", len);
 
-    println!("format {} {} {} {} {} {} {}",
+    println!("format {} {} {} {} {} {} {} {}",
              date,
+             minute,
              unixtime,
              pop,
              service,
