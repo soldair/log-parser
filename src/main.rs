@@ -1,6 +1,6 @@
 use std::io;
 use std::io::prelude::*;
-//use std::fs::File;
+use std::fs::File;
 
 extern crate time;
 
@@ -15,10 +15,11 @@ fn main() {
     let handle = stdin.lock();
     let mut count = 0; 
 
-    for byte in handle.bytes() {
-        //let c = byte.unwrap() as char;
-        count += 1;
-    }
+    let mut f = File::open("./test.log").unwrap();
+    let mut buffer = Vec::new();
+    f.read_to_end(&mut buffer).unwrap();
+
+    println!("{}", buffer.len());
 }
 
 
