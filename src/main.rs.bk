@@ -11,13 +11,59 @@ fn main() {
     // /npm/public/registry/i/is-utf8/_attachments/doc.json" 200 "npm/4.2.0 node/v7.8.0 linux x64"
     // "install" "26f82920d62b24e9" "HIT" "(null)" "cache-iad2645-IAD" "0" "1016" "1466" "251"
 
+    // only quoted values have spaces.
+    let mut value = String::new();
+    let mut values = Vec::new();
+    let mut state = "out";
+
     let stdin = io::stdin();
     let handle = stdin.lock();
-    let mut count = 0; 
 
     for byte in handle.bytes() {
-        //let c = byte.unwrap() as char;
-        count += 1;
+        let c = byte.unwrap() as char;
+
+        if c == '\n' {
+            // if i have a pending value add it to values
+            if value.len() > 0 {
+                values.push(value)
+            }
+
+            format(&values);
+
+            value = String::new();
+            values = Vec::new();
+            continue;
+        }
+
+        if state == "out" {
+            if c == '"' {
+                state = "quoted";
+                // skip quote
+                continue;
+            } else if c != ' ' {
+                state = "value";
+            }
+        }
+
+        if state == "value" {
+            if c == ' ' {
+                values.push(value);
+                value = String::new();
+                state = "out";
+            } else if c != '"' {
+                value.push(c);
+            }
+        }
+
+        if state == "quoted" {
+            if c == '"' {
+                values.push(value);
+                value = String::new();
+                state = "out";
+            } else {
+                value.push(c);
+            }
+        }
     }
 }
 
