@@ -3,8 +3,11 @@ use std::io::prelude::*;
 //use std::fs::File;
 
 extern crate time;
-
-
+/*
+const C_QUOTE = 34;
+const C_SPACE = 32;
+const C_NL = 10;
+*/
 fn main() {
 
     // <134>2017-04-24T20:38:26Z cache-iad2645 fastly-logs-5-east[367774]: 54.87.185.35 "-" "GET
@@ -21,7 +24,8 @@ fn main() {
     // re use values and value!
 
     let mut value = String::new();
-    let mut values = Vec::new();
+    let mut values = vec!["".to_string(); 32];
+    let mut values_offset: usize = 0;
 
     loop {
         let count = match handle.read(&mut buf) {
@@ -39,13 +43,17 @@ fn main() {
             if c == '\n' {
                 // if i have a pending value add it to values
                 if value.len() > 0 {
-                    values.push(value)
+                    values[values_offset] = value;
                 }
 
-                format(&mut values);
+                if values_offset >= 17 {
+                    format(&values, values_offset);
+                } else {
+                    println!("should not happen");
+                }
 
                 value = String::new();
-                values = Vec::new();
+                values_offset = 0;
                 continue;
             }
 
@@ -61,7 +69,8 @@ fn main() {
 
             if state == "value" {
                 if c == ' ' {
-                    values.push(value);
+                    values[values_offset] = value;
+                    values_offset += 1;
                     value = String::new();
                     state = "out";
                 } else if c != '"' {
@@ -71,7 +80,8 @@ fn main() {
 
             if state == "quoted" {
                 if c == '"' {
-                    values.push(value);
+                    values[values_offset] = value;
+                    values_offset += 1;
                     value = String::new();
                     state = "out";
                 } else {
@@ -83,14 +93,14 @@ fn main() {
         }
     }
 
-    println!("count {}",byte_count);
+    println!("count {}", byte_count);
 }
 
 
-fn format(values: &mut Vec<String>) {
-    let len = values.len();
+fn format(values: & Vec<String>, length: usize) {
+    let length = values.len();
 
-    if len == 0 {
+    if length == 0 {
         return;
     }
 
@@ -112,7 +122,7 @@ fn format(values: &mut Vec<String>) {
     let status = &values[6];
 
     let mut offset = 0;
-    if len == 18 {
+    if length == 18 {
         offset = 1;
     }
 
@@ -132,7 +142,7 @@ fn format(values: &mut Vec<String>) {
     */
 }
 
-fn parse_date(date:&String) -> String {
+fn parse_date(date: &String) -> String {
     let offset_option = date.find('>');
 
     if offset_option != None {
@@ -142,7 +152,7 @@ fn parse_date(date:&String) -> String {
         let end = date.len() - offset - 1;
 
         //date = date.chars().skip(offset).take(end).collect();
-        return substr(&date, offset, end)
+        return substr(&date, offset, end);
     }
     return String::new();
 }

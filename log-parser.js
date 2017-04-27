@@ -12,8 +12,11 @@ var size = require('prettysize')
 var minutes = {}
 var buffered = []
 
+var bytes = 0
 process.stdin.pipe(split()).on('data',function(l){
     
+
+  bytes += l.length+1
   // bytes
   // service
   var parts = l.split(' ')
@@ -78,9 +81,13 @@ process.stdin.pipe(split()).on('data',function(l){
 process.on('SIGINT',report)
 
 function report(){
-	buffered.forEach(function(minute){
+
+console.log('count ',bytes)
+        /*
+        buffered.forEach(function(minute){
 		process.stdout.write(JSON.stringify(minutes[minute])+"\n")
 	})
+        */
 	process.exit()
 	/*
 	Object.keys(counts).forEach(function(n){
