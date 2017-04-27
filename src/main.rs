@@ -12,24 +12,89 @@ fn main() {
     // "install" "26f82920d62b24e9" "HIT" "(null)" "cache-iad2645-IAD" "0" "1016" "1466" "251"
 
     let stdin = io::stdin();
-    let handle = stdin.lock();
-    let mut count = 0; 
+    let mut handle = stdin.lock();
+    let mut buf = [0; 1024];
+    let mut byte_count = 0;
 
-    for byte in handle.bytes() {
-        //let c = byte.unwrap() as char;
-        count += 1;
+    let mut state = "out";
+
+    // re use values and value!
+
+    let mut value = String::new();
+    let mut values = Vec::new();
+
+    loop {
+        let count = match handle.read(&mut buf) {
+            Ok(v) => v,
+            _ => 0,
+        };
+
+        if count == 0 {
+            break;
+        }
+
+        for i in 0..count {
+            let c = buf[i] as char;
+
+            if c == '\n' {
+                // if i have a pending value add it to values
+                if value.len() > 0 {
+                    values.push(value)
+                }
+
+                format(&mut values);
+
+                value = String::new();
+                values = Vec::new();
+                continue;
+            }
+
+            if state == "out" {
+                if c == '"' {
+                    state = "quoted";
+                    // skip quote
+                    continue;
+                } else if c != ' ' {
+                    state = "value";
+                }
+            }
+
+            if state == "value" {
+                if c == ' ' {
+                    values.push(value);
+                    value = String::new();
+                    state = "out";
+                } else if c != '"' {
+                    value.push(c);
+                }
+            }
+
+            if state == "quoted" {
+                if c == '"' {
+                    values.push(value);
+                    value = String::new();
+                    state = "out";
+                } else {
+                    value.push(c);
+                }
+            }
+
+            byte_count += 1;
+        }
     }
+
+    println!("count {}",byte_count);
 }
 
 
-fn format(values: &Vec<String>) {
+fn format(values: &mut Vec<String>) {
     let len = values.len();
 
     if len == 0 {
         return;
     }
 
-    let date = parse_date(values[0].clone());
+    let date = parse_date(&values[0]);
     let unixtime = logtime_to_unixtime(&date);
     let minute = unixtime - (unixtime % 60);
 
@@ -54,12 +119,7 @@ fn format(values: &Vec<String>) {
     let egress_bytes = &values[15 + offset];
     let ingress_bytes = &values[16 + offset];
 
-    for v in values {
-        print!("{}, ", v);
-    }
-
-    println!("[{}]", len);
-
+    /*
     println!("format {} {} {} {} {} {} {} {}",
              date,
              minute,
@@ -69,10 +129,10 @@ fn format(values: &Vec<String>) {
              status,
              egress_bytes,
              ingress_bytes);
+    */
 }
 
-fn parse_date(dateref: String) -> String {
-    let mut date = dateref.clone();
+fn parse_date(date:&String) -> String {
     let offset_option = date.find('>');
 
     if offset_option != None {
@@ -82,9 +142,9 @@ fn parse_date(dateref: String) -> String {
         let end = date.len() - offset - 1;
 
         //date = date.chars().skip(offset).take(end).collect();
-        date = substr(&date, offset, end)
+        return substr(&date, offset, end)
     }
-    return date;
+    return String::new();
 }
 
 fn logtime_to_unixtime(date: &String) -> i64 {
@@ -99,8 +159,7 @@ fn logtime_to_unixtime(date: &String) -> i64 {
 }
 
 fn substr(string: &String, start: usize, len: usize) -> String {
-    let copy = string.clone();
-    return copy.chars().skip(start).take(len).collect();
+    return string.chars().skip(start).take(len).collect();
 }
 
 
