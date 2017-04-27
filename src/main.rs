@@ -97,8 +97,7 @@ fn main() {
 }
 
 
-fn format(values: & Vec<String>, length: usize) {
-    let length = values.len();
+fn format(values: &Vec<String>, length: usize) {
 
     if length == 0 {
         return;
