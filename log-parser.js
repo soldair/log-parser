@@ -27,7 +27,7 @@ process.stdin.pipe(split()).on('data',function(l){
 
   var time = Date.parse(date)
   var minute = time-(time% (1000*60) )
-  /*
+  
   if(!minutes[minute]){
     minutes[minute] = {time:new Date(minute).toJSON(),count:0,size:0}
     buffered.push(minute)
@@ -39,7 +39,7 @@ process.stdin.pipe(split()).on('data',function(l){
       process.stdout.write(JSON.stringify(removedMinute)+"\n")
     }
   }
-  */
+  
   var counts = minutes[minute]
 
   var pop = parts[1].substr(6,3)
@@ -55,7 +55,7 @@ process.stdin.pipe(split()).on('data',function(l){
   var egress = unsigned(sizes[2])
   var ingress = unsigned(sizes[3])
 
-  /*
+  
   var pathObj = {}
 
   total += egress
@@ -73,7 +73,7 @@ process.stdin.pipe(split()).on('data',function(l){
 
   counts.count++
   counts.size += egress
-  */
+  
 
   ++c 
 }).on('end',report)
@@ -82,19 +82,20 @@ process.on('SIGINT',report)
 
 function report(){
 
-console.log('count ',bytes)
-        /*
+console.error('count ',bytes)
+        
         buffered.forEach(function(minute){
 		process.stdout.write(JSON.stringify(minutes[minute])+"\n")
 	})
-        */
+        
 	process.exit()
-	/*
+        /*	
 	Object.keys(counts).forEach(function(n){
 		//console.log(counts[n])
 		console.log(n+"\n",Math.floor((counts[n].s/total)*100)+'%\n',size(counts[n].s)+'\n')
 	})
-	*/
+        */
+	
 }
 
 
